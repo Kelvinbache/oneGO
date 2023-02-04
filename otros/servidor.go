@@ -1,15 +1,26 @@
 package otros
 
 import (
-	"log"
+	"embed"
+	"io/fs"
 	"net/http"
 )
 
-func servidor(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("<h1>hola</h1>"))
+var conte embed.FS
+
+func repuesta() http.Handler {
+	file := fs.FS(conte)
+	html, _ := fs.Sub(file, "./public")
+
+	return http.FileServer(http.FS(html))
 }
 
-func repuesta() {
-	http.HandleFunc("/", servidor)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+func conexion() {
+	mux := http.NewServeMux()
+	mux.Handle("/", repuesta())
+	http.ListenAndServe(":8080", nil)
 }
+
+/*
+ buscar un modo de conentar los archivos publicos con el servidor
+*/
